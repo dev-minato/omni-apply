@@ -1,0 +1,99 @@
+{
+  "name": "OmniApply 24/7 Autonomous Job Hunter Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Schedule Trigger (Every 2 Hours)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/pipeline/run-cycle?trigger_source=n8n_scheduled_workflow",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "2",
+      "name": "OmniApply AI Engine (Scrape, Tailor & Dispatch)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.applications_processed }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Check Applications Sent",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        700,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 2 Hours)": {
+      "main": [
+        [
+          {
+            "node": "OmniApply AI Engine (Scrape, Tailor & Dispatch)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OmniApply AI Engine (Scrape, Tailor & Dispatch)": {
+      "main": [
+        [
+          {
+            "node": "Check Applications Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
